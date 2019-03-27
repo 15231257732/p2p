@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaxin.ssm.dao.ICustomerMapper">
+<!--    <cache></cache> -->
+   
+   <select id="getAllCustomer" parameterType="PageBean" resultType="Customer">
+       select t.cid,t.customer_code,t.customer_name,t.id_card,t.mobile,t.email,t.address,t.rn from
+	       (select k.cid,k.customer_code,k.customer_name,k.id_card,k.mobile,k.email,k.address,rownum rn from(
+	            select a.cid,a.customer_code,a.customer_name,a.id_card,a.mobile,a.email,a.address from B_Customer a  
+			       <where>
+			          <if test="map.name!=null and map.name!='' " >
+			              a.customer_name like '%${map.name}%'
+			          </if>
+			       </where>
+	       ) k where rownum<![CDATA[>=]]>#{StartRow} 
+	   ) t where t.rn<![CDATA[<=]]> #{endRow}
+   </select>
+   
+   <select id="getCustomerCount" parameterType="PageBean" resultType="int">
+       select count(t.cid) from B_Customer t 
+       <where>
+         <if test="map.name!=null and map.name!='' " >
+             t.customer_name like '%${map.name}%'
+         </if>
+      </where>
+   </select>
+   <delete id="deleteCustomer" parameterType="String">
+       delete B_Customer t where t.cid=#{0}
+   </delete>
+   
+   <update id="updateCustomer" parameterType="Customer">
+      update B_Customer t
+	      <set>
+		      <if test="customer_code!=null and customer_code!='' ">
+		          t.customer_code=#{customer_code},
+		      </if>
+		      <if test="customer_name!=null and customer_name!='' ">
+		          t.customer_name=#{customer_name},
+		      </if>
+		      <if test="id_card!=null and id_card!='' ">
+		          t.id_card=#{id_card},
+		      </if>
+		      <if test="mobile!=null and mobile!='' ">
+		          t.mobile=#{mobile},
+		      </if>
+		      <if test="email!=null and email!='' ">
+		          t.email=#{email},
+		      </if>
+		      <if test="address!=null and address!='' ">
+		          t.address=#{address}
+		      </if>
+	      </set>
+      <where>
+         t.cid=#{cid}
+      </where>
+   </update>
+   
+   <insert id="addCustomer" parameterType="Customer">
+        insert into B_Customer t values (p2p_seq.nextval,#{customer_code},#{customer_name},#{id_card},#{mobile},#{email},#{address})
+   </insert>
+   
+   <select id="getCustomerById" resultType="Customer" parameterType="String">
+       select a.cid,a.customer_code,a.customer_name,a.id_card,a.mobile,a.email,a.address from B_Customer  a where a.cid=#{0}
+   </select>
+   
+   <select id="getCustomerList" parameterType="PageBean" resultType="Customer">
+       select a.cid,a.customer_code,a.customer_name,a.id_card,a.mobile,a.email,a.address from B_Customer a 
+   </select>
+   
+   <select id="getBankByCid" resultType="Customer" parameterType="String">
+        select a.id,a.cid,a.bankno,a.bankname,a.cardno,a.cardname,a.province,a.province,a.city,a.county,a.active,s.sheng from B_Consumer_bank a left join t_sheng s on a.province=s.id where a.cid=#{cid} and a.active='1' 
+   </select>
+</mapper>

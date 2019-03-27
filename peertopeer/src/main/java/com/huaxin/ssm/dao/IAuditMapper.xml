@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaxin.ssm.dao.IAuditMapper">
+<!--    <cache></cache> -->
+   
+   <select id="getAllObj" parameterType="PageBean" resultType="LoanApply">
+       select t.id,t.cid,t.pid,t.cusname,t.proname,t.loancode,t.loandate,t.loanamount,t.coveragedate,t.auditor,t.status,t.rn from
+	       (select k.id,k.cid,k.pid,k.cusname,k.proname,k.loancode,k.loandate,k.loanamount,k.coveragedate,k.auditor,k.status,rownum rn from(
+	            select a.id,a.cid,a.pid,b.customer_name cusname,p.name proname,a.loancode,to_char(a.loandate,'yyyy-mm-dd') loandate,a.loanamount,
+                to_char(a.coveragedate,'yyyy-mm-dd') coveragedate,a.auditor,a.status from B_Loanapplication a
+                left join B_Customer b on a.cid=b.cid
+                left join B_product p on a.pid=p.id
+			       <where>
+			          a.status=1
+			          <if test="map.name!=null and map.name!='' " >
+			              and a.loancode like '%${map.name}%'
+			          </if>
+			       </where>
+	       ) k where rownum<![CDATA[>=]]>#{StartRow} 
+	   ) t where t.rn<![CDATA[<=]]> #{endRow}
+   </select>
+   <select id="getObjCount" parameterType="PageBean" resultType="int">
+       select count(a.id) from B_Loanapplication a 
+       left join B_Customer b on a.cid=b.cid
+       left join B_product p on a.pid=p.id
+       <where>
+         a.status=1
+         <if test="map.name!=null and map.name!='' " >
+             and a.loancode like '%${map.name}%'
+         </if>
+      </where>
+   </select>
+   
+   <select id="getObjById" resultType="LoanApply" parameterType="String">
+       select a.id,a.cid,a.pid,a.loancode,to_char(a.loandate,'yyyy-mm-dd') loandate,a.loanamount from B_Loanapplication a where a.id=#{0}
+   </select>
+   
+   <update id="toAudit" parameterType="String">
+       update B_Loanapplication t set t.status=#{1} where t.id=#{0}
+   </update>
+</mapper>

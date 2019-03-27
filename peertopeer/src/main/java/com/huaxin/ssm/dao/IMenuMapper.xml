@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaxin.ssm.dao.IMenuMapper">
+
+<select id="getMenuTree" resultType="Tree">
+       select t.id,t.name text,t.iconcls,t.url attributes from t_sys_menu t where t.parentid=0 and t.enable=1 order by t.levelid
+   </select>
+   <select id="getTreeListByPid" resultType="Tree" parameterType="String">
+       select t.id,t.name text,t.iconcls,t.url attributes from t_sys_menu t where t.parentid=#{0} and t.enable=1 order by t.levelid
+   </select>
+   
+   <select id="getAuthMenuTree" parameterType="User" resultType="Tree">
+      select k.id, k.name text, k.iconcls iconCls, k.url from t_sys_menu k 
+	  where k.id in (
+	    select t.parentid 
+	    from t_sys_menu t 
+	    right join t_sys_role_menu rm on t.id=rm.menu_id
+	    left join t_sys_role r on rm.role_id=r.id
+	    left join t_sys_user_role ur on ur.roleid=r.id
+	    where ur.userid=#{id} 
+	  ) order by k.levelid
+   </select>
+   <select id="getAuthMenuTreeByPid" parameterType="String" resultType="Tree">
+      select t.id, t.name text, t.iconcls iconCls, t.url attributes
+	  from t_sys_menu t 
+	  right join t_sys_role_menu rm on t.id=rm.menu_id
+	  left join t_sys_role r on rm.role_id=r.id
+	  left join t_sys_user_role ur on ur.roleid=r.id
+	  where ur.userid=#{0} and t.parentid=#{1} order by t.levelid
+   </select>
+</mapper>

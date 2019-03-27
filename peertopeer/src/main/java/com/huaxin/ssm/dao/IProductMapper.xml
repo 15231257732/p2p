@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaxin.ssm.dao.IProductMapper">
+<!--    <cache></cache> -->
+   
+   <select id="getAllProduct" parameterType="PageBean" resultType="Product">
+       select t.id,t.name,t.proceeds,t.isshelf,t.period,t.rn from
+	       (select k.id,k.name,k.proceeds,k.isshelf,k.period,rownum rn from(
+	            select a.id,a.name,a.proceeds,a.isshelf,a.period from B_product a  
+			       <where>
+			          <if test="map.name!=null and map.name!='' " >
+			              a.name like '%${map.name}%'
+			          </if>
+			       </where>
+	       ) k where rownum<![CDATA[<=]]> #{endRow}
+	   ) t where t.rn<![CDATA[>=]]>#{StartRow} 
+   </select>
+   <select id="getProductCount" parameterType="PageBean" resultType="int">
+       select count(t.id) from B_product t 
+       <where>
+         <if test="map.name!=null and map.name!='' " >
+             t.name like '%${map.name}%'
+         </if>
+      </where>
+   </select>
+   <delete id="deleteProduct" parameterType="String">
+       delete B_product t where t.id=#{0}
+   </delete>
+   
+   <update id="updateProduct" parameterType="Product">
+      update B_product t
+      <set>
+	      <if test="name!=null and name!='' ">
+	          t.name=#{name},
+	      </if>
+	      <if test="proceeds!=null and proceeds!='' ">
+	          t.proceeds=#{proceeds},
+	      </if>
+	      <if test="isshelf!=null and isshelf!='' ">
+	          t.isshelf=#{isshelf},
+	      </if>
+	      <if test="period!=null and period!='' ">
+	          t.period=#{period}
+	      </if>
+      </set>
+      <where>
+         t.id=#{id}
+      </where>
+   </update>
+   
+   <insert id="addProduct" parameterType="Product">
+        insert into B_product t values(p2p_seq.nextval,#{name},#{proceeds},#{isshelf},#{period})
+   </insert>
+   
+   <select id="getProductById" resultType="Product" parameterType="String">
+       select a.id,a.name,a.proceeds,a.isshelf,a.period from B_product a where a.id=#{0}
+   </select>
+   <select id="getProductList" resultType="Product">
+        select a.id,a.name,a.proceeds,a.isshelf,a.period from B_product a where isshelf='1'
+   </select>
+</mapper>

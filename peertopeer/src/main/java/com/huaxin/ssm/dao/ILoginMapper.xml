@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaxin.ssm.dao.ILoginMapper">
+  <!--  <cache></cache> -->
+   
+   <select id="getUserInfo" resultType="User" parameterType="user">
+       select k.id,k.username,k.password,k.email,k.sex,k.qq,k.weixin,k.regtime,k.enable from t_sys_user k 
+       where k.username=#{username} and k.password=#{password}
+   </select>
+</mapper>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaxin.ssm.dao.ICusBankMapper">
+<!--    <cache></cache> -->
+   
+   <select id="getAllCusBank" parameterType="PageBean" resultType="Customer">
+       select t.id,t.cid,t.bankno,t.bankname,t.cardno,t.cardname,t.province,t.city,t.county,t.active,t.customer_code,t.customer_name,t.sheng,t.rn from
+	       (select k.id,k.cid,k.bankno,k.bankname,k.cardno,k.cardname,k.province,k.city,k.county,k.active,k.customer_code,k.customer_name,k.sheng,rownum rn from(
+	            select a.id,a.cid,a.bankno,a.bankname,a.cardno,a.cardname,a.province,a.city,a.county,a.active,t.customer_code,t.customer_name,s.sheng from B_Consumer_bank a 
+	            left join B_Customer t on a.cid=t.cid
+	              left join T_sheng s on s.id=a.province 
+			       <where>
+			          <if test="map.name!=null and map.name!='' " >
+			              a.bankname like '%${map.name}%'
+			          </if>
+			       </where>
+	       ) k where rownum<![CDATA[<=]]> #{endRow}
+	   ) t where t.rn<![CDATA[>=]]>#{StartRow}
+   </select>
+   <select id="getCusBankCount" parameterType="PageBean" resultType="int">
+       select count(a.id) from B_Consumer_bank a left join B_Customer t on a.cid=t.cid
+       <where>
+         <if test="map.name!=null and map.name!='' " >
+             a.bankname like '%${map.name}%'
+         </if>
+      </where>
+   </select>
+   <delete id="deleteByCid" parameterType="String">
+       delete B_Consumer_bank t where t.cid=#{cid}
+   </delete>
+   
+   <delete id="deleteCusBank" parameterType="String">
+       delete B_Consumer_bank t where t.id=#{0}
+   </delete>
+   
+   <update id="updateCusBank" parameterType="Customer">
+      update B_Consumer_bank t
+	      <set>
+		      <if test="bankno!=null and bankno!='' ">
+		          t.bankno=#{bankno},
+		      </if>
+		      <if test="bankname!=null and bankname!='' ">
+		          t.bankname=#{bankname},
+		      </if>
+		      <if test="cardno!=null and cardno!='' ">
+		          t.cardno=#{cardno},
+		      </if>
+		      <if test="cardname!=null and cardname!='' ">
+		          t.cardname=#{cardname},
+		      </if>
+		      <if test="province!=null and province!='' ">
+		          t.province=#{province},
+		      </if>
+		      <if test="city!=null and city!='' ">
+		          t.city=#{city},
+		      </if>
+		      <if test="county!=null and county!='' ">
+		          t.county=#{county}
+		      </if>
+	      </set>
+      <where>
+         t.id=#{id}
+      </where>
+   </update>
+   
+   <insert id="addCusBank" parameterType="Customer">
+        insert into B_Consumer_bank (id,cid,bankno,bankname,cardno,cardname,province,city,county) values (p2p_seq.nextval,#{cid},#{bankno},#{bankname},#{cardno},#{cardname},#{province},#{city},#{county})
+   </insert>
+   
+   <select id="getCusBankById" resultType="Customer" parameterType="String">
+       select a.id,a.cid,a.bankno,a.bankname,a.cardno,a.cardname,a.province,a.city,a.county from B_Consumer_bank a  where a.id=#{0}
+   </select>
+   
+   <update id="activeObj" parameterType="String">
+	   update B_Consumer_bank t set t.active=decode(t.id,#{0},'1','0') where t.cid=#{1}
+   </update>
+   
+    <select id="getShengList" parameterType="PageBean" resultType="Sheng">
+       select a.id,a.sheng from T_sheng a 
+   </select>
+</mapper>

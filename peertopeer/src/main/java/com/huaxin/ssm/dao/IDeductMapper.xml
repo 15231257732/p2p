@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaxin.ssm.dao.IDeductMapper">
+<!--    <cache></cache> -->
+   
+   <select id="getAllObj" parameterType="PageBean" resultType="LoanApply">
+       select t.id,t.cid,t.pid,t.cusname,t.proname,t.loancode,t.loandate,t.loanamount,t.coveragedate,t.auditor,t.status,t.appointdate,t.rn from
+	       (select k.id,k.cid,k.pid,k.cusname,k.proname,k.loancode,k.loandate,k.loanamount,k.coveragedate,k.auditor,k.status,K.appointdate,rownum rn from(
+	            select a.id,a.cid,a.pid,b.customer_name cusname,p.name proname,a.loancode,to_char(a.loandate,'yyyy-mm-dd') loandate,a.loanamount,
+                to_char(a.coveragedate,'yyyy-mm-dd') coveragedate,a.auditor,a.status,to_char(a.appointdate,'yyyy-mm-dd HH24:mi') appointdate from B_Loanapplication a
+                left join B_Customer b on a.cid=b.cid
+                left join B_product p on a.pid=p.id
+			       <where>
+			          a.status in (2,5)
+			          <if test="map.name!=null and map.name!='' " >
+			              and a.loancode like '%${map.name}%'
+			          </if>
+			       </where>
+	       ) k where rownum<![CDATA[<=]]> #{endRow}
+	   ) t where t.rn<![CDATA[>=]]>#{StartRow}
+   </select>
+   <select id="getObjCount" parameterType="PageBean" resultType="int">
+       select count(a.id) from B_Loanapplication a 
+       left join B_Customer b on a.cid=b.cid
+       left join B_product p on a.pid=p.id
+       <where>
+         a.status in (2,5)
+         <if test="map.name!=null and map.name!='' " >
+             and a.loancode like '%${map.name}%'
+         </if>
+      </where>
+   </select>
+   
+   <!-- 已划扣页面查询的数据列表 -->
+   <select id="getAllSuccObj" parameterType="PageBean" resultType="LoanApply">
+       select t.id,t.cid,t.pid,t.cusname,t.proname,t.loancode,t.loandate,t.loanamount,t.coveragedate,t.auditor,t.status,t.appointdate,t.rn from
+	       (select k.id,k.cid,k.pid,k.cusname,k.proname,k.loancode,k.loandate,k.loanamount,k.coveragedate,k.auditor,k.status,k.appointdate,rownum rn from(
+	            select a.id,a.cid,a.pid,b.customer_name cusname,p.name proname,a.loancode,to_char(a.loandate,'yyyy-mm-dd') loandate,a.loanamount,
+                to_char(a.coveragedate,'yyyy-mm-dd') coveragedate,a.auditor,a.status,to_char(a.appointdate,'yyyy-mm-dd HH24:mi') appointdate from B_Loanapplication a
+                left join B_Customer b on a.cid=b.cid
+                left join B_product p on a.pid=p.id
+			       <where>
+			          a.status in (4,6)
+			          <if test="map.name!=null and map.name!='' " >
+			              and a.loancode like '%${map.name}%'
+			          </if>
+			       </where>
+	       ) k where rownum<![CDATA[<=]]> #{endRow}
+	   ) t where t.rn<![CDATA[>=]]>#{StartRow}
+   </select>
+   <select id="getObjSuccCount" parameterType="PageBean" resultType="int">
+       select count(a.id) from B_Loanapplication a 
+       left join B_Customer b on a.cid=b.cid
+       left join B_product p on a.pid=p.id
+       <where>
+         a.status in (4,6)
+         <if test="map.name!=null and map.name!='' " >
+             and a.loancode like '%${map.name}%'
+         </if>
+      </where>
+   </select>
+   
+   <select id="getObjById" resultType="LoanApply" parameterType="String">
+       select a.id,a.cid,a.pid,a.loancode,to_char(a.loandate,'yyyy-mm-dd') loandate,a.loanamount from B_Loanapplication a where a.id=#{0}
+   </select>
+   
+   <sql id="getDeductSql">
+        select a.id,a.loanamount,a.loancode as orderNum,b.customer_name cusNm,b.email,b.id_card credtNo,b.mobile mobileNo,
+		c.bankno,c.bankname,c.cardno acntNo,c.cardname acntNm,c.province acntPro,c.city acntCity 
+		from B_Loanapplication a 
+		left join B_Customer b on a.cid=b.cid
+		left join B_Consumer_bank c on b.cid=c.cid
+   </sql>
+   
+   <select id="getDeductById" parameterType="String" resultType="Deduct">
+        <include refid="getDeductSql"></include>
+        <where>
+            c.active=1 and a.id=#{0}
+        </where>
+   </select>
+   
+   <select id="getDeductListByIds" parameterType="Map" resultType="Deduct">
+        <include refid="getDeductSql"></include>
+        <where>
+            c.active=1 and a.id in (${ids})
+        </where>
+   </select>
+   
+   <select id="getAppointDeductList" parameterType="Map" resultType="Deduct">
+        <include refid="getDeductSql"></include>
+        <where>
+            c.active=1 and to_date(to_char(a.appointdate,'yyyy-mm-dd HH24:MI:SS'),'yyyy-mm-dd HH24:MI:SS')=to_date(to_char(sysdate,'yyyy-mm-dd HH24:MI:SS'),'yyyy-mm-dd HH24:MI:SS')
+        </where>
+   </select>
+   
+   <update id="toDeduct" parameterType="Map" >
+       update B_Loanapplication t set t.status=#{state} where t.id=#{id}
+   </update>
+   
+   <insert id="AddDeduct" parameterType="Deduct">
+       insert into B_deduct (id,lid,Amount,ordernum,Serialnum,Platform,Deductresult,Deducttime,Remark) 
+       values (p2p_seq.nextval,#{id},#{loanAmount,jdbcType=NUMERIC},#{orderNum,jdbcType=VARCHAR},#{serialNum,jdbcType=VARCHAR},#{platForm,jdbcType=VARCHAR},#{deductRes},sysdate,#{remark,jdbcType=VARCHAR}) 
+   </insert>
+   
+   <select id="getDeductInfo" resultType="Deduct" parameterType="String">
+       select t.lid id,t.amount loanAmount,t.ordernum,t.serialnum,t.platform,t.deductresult deductRes,
+       to_char(t.deducttime,'yyyy-mm-dd HH24:MI:SS') deductTime 
+       from B_deduct t where t.lid=#{0}
+   </select>
+   
+   <update id="deductAppoint" parameterType="Map">
+        update B_Loanapplication a set a.appointdate=to_date(#{appointdate},'yyyy-mm-dd HH24:MI:SS') where a.id in (${ids}) 
+   </update>
+</mapper>

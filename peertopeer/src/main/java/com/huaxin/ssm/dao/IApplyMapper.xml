@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaxin.ssm.dao.IApplyMapper">
+<!--    <cache></cache> -->
+   
+   <select id="getAllObj" parameterType="PageBean" resultType="LoanApply">
+       select t.id,t.cid,t.pid,t.cusname,t.proname,t.loancode,t.loandate,t.loanamount,t.coveragedate,t.auditor,t.status,t.rn from
+	       (select k.id,k.cid,k.pid,k.cusname,k.proname,k.loancode,k.loandate,k.loanamount,k.coveragedate,k.auditor,k.status,rownum rn from(
+	            select a.id,a.cid,a.pid,b.customer_name cusname,p.name proname,a.loancode,to_char(a.loandate,'yyyy-mm-dd') loandate,a.loanamount,
+                to_char(a.coveragedate,'yyyy-mm-dd') coveragedate,a.auditor,a.status from B_Loanapplication a
+                left join B_Customer b on a.cid=b.cid
+                left join B_product p on a.pid=p.id
+			       <where>
+			          <if test="map.name!=null and map.name!='' " >
+			              a.loancode like '%${map.name}%'
+			          </if>
+			       </where>
+	       ) k where rownum<![CDATA[<=]]> #{endRow}
+	   ) t where t.rn<![CDATA[>=]]>#{StartRow}
+   </select>
+   <select id="getObjCount" parameterType="PageBean" resultType="int">
+       select count(a.id) from B_Loanapplication a 
+       left join B_Customer b on a.cid=b.cid
+       left join B_product p on a.pid=p.id
+       <where>
+         <if test="map.name!=null and map.name!='' " >
+             a.loancode like '%${map.name}%'
+         </if>
+      </where>
+   </select>
+   <delete id="deleteObj" parameterType="String">
+       delete B_Loanapplication t where t.id=#{0}
+   </delete>
+   <update id="updateObj" parameterType="LoanApply">
+      update B_Loanapplication t
+	      <set>
+		      <if test="cid!=null and cid!='' ">
+		          t.cid=#{cid},
+		      </if>
+		      <if test="pid!=null and pid!='' ">
+		          t.pid=#{pid},
+		      </if>
+		      <if test="loancode!=null and loancode!='' ">
+		          t.loancode=#{loancode},
+		      </if>
+		      <if test="loanamount!=null and loanamount!='' ">
+		          t.Loanamount=#{loanamount},
+		      </if>
+		      <if test="loandate!=null and loandate!='' ">
+		          t.loandate=to_date(#{loandate},'yyyy-mm-dd')
+		      </if>
+	      </set>
+      <where>
+         t.id=#{id}
+      </where>
+   </update>
+   
+   <insert id="addObj" parameterType="LoanApply">
+        insert into B_Loanapplication (id,cid,pid,Loancode,Loandate,Loanamount,status) values (p2p_seq.nextval,#{cid},#{pid},#{loancode},to_date(#{loandate},'yyyy-mm-dd'),#{loanamount},0)
+   </insert>
+   
+   <select id="getObjById" resultType="LoanApply" parameterType="String">
+       select a.id,a.cid,a.pid,a.loancode,to_char(a.loandate,'yyyy-mm-dd') loandate,a.loanamount from B_Loanapplication a where a.id=#{0}
+   </select>
+   
+   <update id="toSubmit" parameterType="String">
+       update B_Loanapplication t set t.status=1 where t.id=#{0}
+   </update>
+</mapper>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaxin.ssm.dao.IMainMapper">
+   
+   <select id="getLinChart" resultType="map" >
+       select to_char(t.loandate,'yyyy-MM-dd') loandate,max(t.loanamount) loanamount  from b_loanapplication t 
+       group by to_char(t.loandate,'yyyy-MM-dd') order by loandate
+   </select>
+   
+   <select id="getPieChart" resultType="map" >
+        select  decode(t.status,0,'未提交',1,'待审核',2,'待划扣',3,'审核退回',4,'划扣成功',5,'划扣失败',6,'回款中',7,'出借完成') name,
+		/*round(count(*)/(select count(*) from b_loanapplication a ),4) bcount */
+		count(*) y
+		from b_loanapplication t
+		group by t.status
+		order by t.status
+   </select>
+   
+   <select id="getBarChart" resultType="map" >
+        select  decode(t.status,0,'未提交',1,'待审核',2,'待划扣',3,'审核退回',4,'划扣成功',5,'划扣失败',6,'回款中',7,'出借完成') name,
+		count(*) y,to_char(t.loandate,'yyyy-mm') loanday 
+		from b_loanapplication t
+		group by t.status,to_char(t.loandate,'yyyy-mm')
+		order by t.status
+   </select>
+   
+</mapper>

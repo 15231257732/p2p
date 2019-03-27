@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaxin.ssm.dao.IUserDao">
+ 
+   <select id="getAllUser" parameterType="PageBean" resultType="User">
+      select t.username,t.password,t.id,t.name,t.email,t.sex,t.qq,t.weixin,t.regtime,t.enable,t.filepath,sname,t.rn from
+	       (select k.username,k.password,k.id,k.name,k.email,k.sex,k.qq,k.weixin,k.regtime,k.enable,k.filepath,sname,rownum rn from(
+	            select a.id,a.username,a.password,a.name,a.email,a.sex,a.qq,a.weixin,to_char(a.regtime,'yyyy-mm-dd') regtime,a.enable,a.filepath,o.name as sname from t_sys_user a
+	              left join t_sys_user_role r on r.userid=a.id
+                   left join t_sys_role o on o.id=r.roleid
+	             
+			       <where>
+			          <if test="map.name!=null and map.name!='' " >
+			              a.username like '%${map.name}%'
+			          </if>
+			       </where>
+			       order by a.username
+	       ) k where rownum<![CDATA[<=]]>#{endRow} 
+	   ) t where t.rn<![CDATA[>=]]> #{StartRow}
+   </select>
+   <select id="getUserCount" parameterType="PageBean" resultType="int">
+       select count(t.id) from t_sys_user t 
+       <where>
+         <if test="map.name!=null and map.name!='' " >
+             t.username like '%${map.name}%'
+         </if>
+      </where>
+   </select>
+   <!--增加或修改  -->
+    <insert id="addUser" parameterType="User">
+      insert into t_sys_user values (p2p_seq.nextval,#{username,jdbcType=VARCHAR},#{password,jdbcType=VARCHAR},#{email,jdbcType=VARCHAR},#{name,jdbcType=VARCHAR},#{sex,jdbcType=VARCHAR},#{qq,jdbcType=VARCHAR},#{weixin,jdbcType=VARCHAR},to_date(#{regtime},'yyyy-mm-dd'),#{enable,jdbcType=VARCHAR},#{filepath,jdbcType=VARCHAR})
+   </insert>
+   <!--删除  -->
+   <delete id="deleteUser" parameterType="map">
+      delete from t_sys_user t where t.id in (${id})
+   </delete>
+    <!--去修改   根据id查询  -->
+   <select id="getUserById" parameterType="String" resultType="User" >
+      select t.id,t.username,t.password,t.email,t.name,t.sex,t.qq,t.weixin,t.regtime,t.enable,t.filepath from t_sys_user t where t.id=#{id}
+   </select>
+   <!--修改  -->
+   <update id="updateUser" parameterType="User">
+      update t_sys_user t 
+      <set>
+         <if test="username!=null and username!='' "> t.username=#{username},</if>
+         <if test="password!=null and password!='' "> t.password=#{password},</if>
+         <if test="email!=null and email!='' "> t.email=#{email},</if>
+         <if test="name!=null and name!='' "> t.name=#{name},</if>
+         <if test="sex!=null and sex!='' "> t.sex=#{sex},</if>
+         <if test="qq!=null and qq!='' "> t.qq=#{qq},</if>
+         <if test="weixin!=null and weixin!='' "> t.weixin=#{weixin},</if>
+         <if test="regtime!=null and regtime!='' "> t.regtime=to_date(#{regtime},'yyyy-mm-dd'),</if>
+        
+         <if test="enable!=null and enable!='' "> t.enable=#{enable},</if>
+         <if test="filepath!=null and filepath!='' "> t.filepath=#{filepath}</if>
+      </set>
+      <where> 
+         t.id=#{id}
+      </where>
+   </update>
+   
+   
+    <!--修改密码  -->
+   <update id="Updatapassword" parameterType="String">
+      update t_sys_user t 
+       <set>
+         <if test="password!=null and password!='' "> t.password=#{password},</if>
+      </set>
+      <where> 
+         t.id=#{id}
+      </where>
+   </update>
+   
+   
+   <insert id="saveUserRole" parameterType="Map">
+      insert into t_sys_user_role values(p2p_seq.nextval,#{id},#{roleid})
+   </insert>
+   
+    <delete id="deleteUserRole" parameterType="String" >
+      delete t_sys_user_role t where t.userid=#{id}
+   </delete>
+   
+   <!--导出excel表  -->
+      <select id="queryAllUser" parameterType="Map" resultType="User">
+       select a.id,a.username,a.password,a.email,a.sex,a.qq,a.weixin,to_char(a.regtime,'yyyy-mm-dd') regtime,a.enable from t_sys_user a 
+       <where>
+          <if test="username!=null and username!='' " >
+              a.username like '%${username}%'
+          </if>
+       </where>
+   </select>
+</mapper>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaxin.ssm.dao.IRoleMapper">
+   
+<select id="getAllRole" parameterType="PageBean" resultType="Role" >
+      <!-- 分页执行该sql语句 -->
+      <if test="endRow!=null and endRow!=0">
+          select k.id,k.name from ( 
+             select t.id,t.name, rownum rn from 
+                (select a.id,a.name from t_sys_role a ) t where rownum<![CDATA[<=]]>#{endRow} ) k 
+		  where k.rn<![CDATA[>=]]>#{StartRow}
+      </if>
+      <!-- 不分页，执行该sql语句 -->
+      <if test="endRow==null or endRow==0 ">
+          select a.id,a.name from t_sys_role a
+      </if>
+   </select>
+   
+   <insert id="addRole" parameterType="Role">
+      insert into t_sys_role values (p2p_seq.nextval,#{name})
+   </insert>
+   
+    <select id="getRoleConut" parameterType="PageBean" resultType="int" >
+      select count(t.id) from t_sys_role t 
+   </select>
+   
+   <delete id="deleteRole" parameterType="String">
+      delete t_sys_role t where t.id=#{0}
+   </delete>
+   <!--根据ID查询菜单树的父节点  -->
+   <select id="getParentMenuAuthTree" resultType="Tree">
+      select t.id,t.name text,t.iconcls iconCls from t_sys_menu t where t.parentid=0 order by t.levelid
+   </select>
+   
+   <select id="getMenuAuthTreeByParentId" resultType="Tree" parameterType="String">
+      select t.id,t.name text,t.iconcls iconCls,nvl2(m.id,'true','false') attributes from t_sys_menu  t 
+	  left join t_sys_role_menu m on t.id=m.menu_id and m.role_id=#{1}
+	  where t.parentid=#{0} order by t.levelid
+   </select>
+   
+     <delete id="deleteRoleMenu" parameterType="String">
+      delete t_sys_role_menu t where t.role_id=#{0}
+   </delete>
+   
+     <insert id="addRoleMenu" parameterType="String">
+        insert into t_sys_role_menu values (p2p_seq.nextval,#{0},#{1})
+   </insert>
+   
+     <select id="getRoleIdByUserId" resultType="String" parameterType="String">
+      select t.roleid  from t_sys_user_role t where t.id=#{id}
+   </select>
+   
+   <select id="getRoleIdByUId" resultType="String" parameterType="String">
+      select t.roleid  from t_sys_user_role t where t.userid=#{id}
+   </select>
+</mapper>
